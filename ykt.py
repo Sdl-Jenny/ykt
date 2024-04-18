@@ -189,8 +189,9 @@ def ssxx():
                     response_new = session.get(url=url, headers=headers)
                     JSON_NEW = json.loads(response_new.text)
                     has_watched = JSON_NEW['data'][video_id]['watch_length']
-                    print(
-                        "正在观看第" + str(i) + "章 第" + str(j) + "个视频----当前进度：" + has_watched * 100 / d + "%")
+                    if d == 0:
+                        d = int(JSON_NEW[video_id]['video_length'])
+                    
 
                     try:
                         sunci = JSON_NEW['data'][video_id]['completed']
