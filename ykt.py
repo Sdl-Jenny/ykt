@@ -152,7 +152,10 @@ def ssxx():
                 url = "https://www.yuketang.cn/video-log/get_video_watch_progress/?cid=" + c_course_id + "&user_id=" + u + "&classroom_id=" + classroom_id + "&video_type=video&vtype=rate&video_id=" + video_id + "&snapshot=1"
                 response_new = session.get(url=url, headers=headers)
                 JSON_NEW = json.loads(response_new.text)
-                d = int(JSON_NEW[video_id]['video_length'])
+                try:
+                    d = int(JSON_NEW[video_id]['video_length'])
+                except Exception as e:
+                    pass
 
             try:
                 sunci = JSON_NEW['data'][video_id]['completed']
