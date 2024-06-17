@@ -5,9 +5,20 @@ import websockets
 import json
 import webbrowser
 import os
-
+import pickle
 
 session = requests.Session()
+
+
+# 保存cookie到文件
+def save_cookies(session, filename):
+    with open(filename, 'wb') as file:
+        pickle.dump(session.cookies, file)
+
+# 从文件加载cookie
+def load_cookies(session, filename):
+    with open(filename, 'rb') as file:
+        session.cookies.update(pickle.load(file))
 
 async def websocket_session():
     uri = "wss://www.yuketang.cn/wsapp"  # WebSocket 服务器的 URI
@@ -64,6 +75,10 @@ async def websocket_session():
                     data = '{"UserID":'+str(UserID)+',"Auth":"'+auth+'"}'
                     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko'}
                     response = session.post(url,data,headers)
+
+                    # 保存cookie
+                    save_cookies(session, 'cookies.pkl')
+
                     break
 
         ssxx()
@@ -193,8 +208,10 @@ def ssxx():
                     JSON_NEW = json.loads(response_new.text)
                     has_watched = JSON_NEW['data'][video_id]['watch_length']
                     if d == 0:
+                        print(response_new.text)
                         d = int(JSON_NEW[video_id]['video_length'])
-                    
+
+
 
                     try:
                         sunci = JSON_NEW['data'][video_id]['completed']
@@ -209,6 +226,23 @@ def ssxx():
 
 
 
+if __name__ == "__main__":
+    print("Start:")
+    # 在程序启动时，尝试加载cookie
+    try:
+        load_cookies(session, 'cookies.pkl')
+        # 测试cookie是否有效，比如访问一个需要登录的页面
+        response = session.get('https://www.yuketang.cn/v2/api/web/courses/list?identity=2')
+        if response.status_code != 200 or 'login' in response.url:
+            raise Exception("Cookies are invalid or expired")
+        else:
+            ssxx()
+    except Exception as e:
+        print("Cookies are invalid or expired, need to login again")
+        asyncio.run(websocket_session())
+        # exit()
 
-# 运行异步函数
-asyncio.run(websocket_session())
+
+
+    # # 运行异步函数
+    # asyncio.run(websocket_session())
